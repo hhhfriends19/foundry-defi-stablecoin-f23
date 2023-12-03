@@ -1,0 +1,3 @@
+[submodule "lib/openzepplin-contracts"]
+	path = lib/openzepplin-contracts
+	url = https://github.com/openzepplin/openzepplin-contracts
