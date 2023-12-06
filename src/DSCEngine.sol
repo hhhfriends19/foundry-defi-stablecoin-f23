@@ -3,8 +3,8 @@
 // Layout of Contract:
 // version
 // imports
-// errors
 // interfaces, libraries, contracts
+// errors
 // Type declarations
 // State variables
 // Events
@@ -41,13 +41,37 @@ pragma solidity ^0.8.18;
  * @notice This contract is VERY loosely based on the MakeDAO DSS (DAI) system.
  */
 contract DSCEnging {
+    ////////////////
+    //   errors   //
+    ////////////////
+    error DSCEngine__NeedsMoreThanZero();
+
+    ////////////////
+    //  modifiers //
+    ////////////////
+    modifier moreThanZero(uint256 amount) {
+        if (amount == 0) {
+            revert DSCEngine__NeedsMoreThanZero();
+        }
+        _;
+    }
+
     function depositCollateralAndMintDsc() external {}
 
-    function depositCollateral() external {}
+    /*
+     * @param tokenCollateralAddress  The address of the token to deposit as collateral
+     * @param amountCollateral  The amount of collateral to deposit
+     */
+    function depositCollateral(
+        address tokenCollateralAddress,
+        uint256 amountCollateral
+    ) external {}
 
     function redeemCollateralForDsc() external {}
 
     function redeemCollateral() external {}
+
+    function mintDsc() external {}
 
     function burnDsc() external {}
 
