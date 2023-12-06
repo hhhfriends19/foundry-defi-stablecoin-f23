@@ -46,6 +46,11 @@ contract DSCEnging {
     ////////////////
     error DSCEngine__NeedsMoreThanZero();
 
+    /////////////////////////
+    //  state variables    //
+    /////////////////////////
+    mapping(address token => address priceFeed) private s_priceFeeds; //tokenToPriceFeed
+
     ////////////////
     //  modifiers //
     ////////////////
@@ -56,6 +61,18 @@ contract DSCEnging {
         _;
     }
 
+    ////////////////
+    //  functions //
+    ////////////////
+    constructor(
+        address[] memory tokenAddresses,
+        address[] memory priceFeedAddress
+    ) {}
+
+    /////////////////////////
+    //  external functions //
+    /////////////////////////
+
     function depositCollateralAndMintDsc() external {}
 
     /*
@@ -65,7 +82,7 @@ contract DSCEnging {
     function depositCollateral(
         address tokenCollateralAddress,
         uint256 amountCollateral
-    ) external {}
+    ) external moreThanZero(amountCollateral) {}
 
     function redeemCollateralForDsc() external {}
 
