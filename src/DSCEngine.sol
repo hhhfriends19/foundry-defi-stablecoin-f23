@@ -24,6 +24,7 @@
 pragma solidity ^0.8.18;
 
 import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title DSCEngine
@@ -42,17 +43,20 @@ import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
  * @notice This contract is the core of the DSC System. It handles all the logic for minting and redeeming DSC, as well as depositing & withdrawing collateral.
  * @notice This contract is VERY loosely based on the MakeDAO DSS (DAI) system.
  */
-contract DSCEnging {
+contract DSCEnging is ReentrancyGuard {
     ////////////////
     //   errors   //
     ////////////////
     error DSCEngine__NeedsMoreThanZero();
     error DSCEnging__TokenAddressesAndPriceFeedAddressesMustBeSameLength();
+    error DSCEngine__NotAllowedToken();
 
     /////////////////////////
     //  state variables    //
     /////////////////////////
     mapping(address token => address priceFeed) private s_priceFeeds; //tokenToPriceFeed
+    mapping(address user => mapping(address token => uint256 amount))
+        private s_collateralDeposited;
 
     DecentralizedStableCoin private immutable i_dsc;
 
@@ -62,6 +66,13 @@ contract DSCEnging {
     modifier moreThanZero(uint256 amount) {
         if (amount == 0) {
             revert DSCEngine__NeedsMoreThanZero();
+        }
+        _;
+    }
+
+    modifier isAllowedToken(address token) {
+        if (s_priceFeeds[token] == address(0)) {
+            revert DSCEngine__NotAllowedToken();
         }
         _;
     }
@@ -98,7 +109,16 @@ contract DSCEnging {
     function depositCollateral(
         address tokenCollateralAddress,
         uint256 amountCollateral
-    ) external moreThanZero(amountCollateral) {}
+    )
+        external
+        moreThanZero(amountCollateral)
+        isAllowedToken(tokenCollateralAddress)
+        nonReentrant
+    {
+        s_collateralDeposited[msg.sender][
+            tokenCollateralAddress
+        ] += amountCollateral;
+    }
 
     function redeemCollateralForDsc() external {}
 
