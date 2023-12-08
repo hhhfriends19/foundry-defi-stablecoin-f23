@@ -23,6 +23,8 @@
 
 pragma solidity ^0.8.18;
 
+import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
+
 /**
  * @title DSCEngine
  * @author Patrick Collins -
@@ -45,11 +47,14 @@ contract DSCEnging {
     //   errors   //
     ////////////////
     error DSCEngine__NeedsMoreThanZero();
+    error DSCEnging__TokenAddressesAndPriceFeedAddressesMustBeSameLength();
 
     /////////////////////////
     //  state variables    //
     /////////////////////////
     mapping(address token => address priceFeed) private s_priceFeeds; //tokenToPriceFeed
+
+    DecentralizedStableCoin private immutable i_dsc;
 
     ////////////////
     //  modifiers //
@@ -66,8 +71,19 @@ contract DSCEnging {
     ////////////////
     constructor(
         address[] memory tokenAddresses,
-        address[] memory priceFeedAddress
-    ) {}
+        address[] memory priceFeedAddresses,
+        address dscAddress
+    ) {
+        // USD Price Feeds
+        if (tokenAddresses.length != priceFeedAddresses.length) {
+            revert DSCEnging__TokenAddressesAndPriceFeedAddressesMustBeSameLength();
+        }
+        // For example ETH /USD, BTC / USD, MKR / USD, etc
+        for (uint256 i = 0; i < tokenAddresses.length; i++) {
+            s_priceFeeds[tokenAddresses[i]] = priceFeedAddresses[i];
+        }
+        i_dsc = DecentralizedStableCoin(dscAddress);
+    }
 
     /////////////////////////
     //  external functions //
