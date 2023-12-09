@@ -25,6 +25,7 @@ pragma solidity ^0.8.18;
 
 import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title DSCEngine
@@ -48,17 +49,22 @@ contract DSCEnging is ReentrancyGuard {
     //   errors   //
     ////////////////
     error DSCEngine__NeedsMoreThanZero();
-    error DSCEnging__TokenAddressesAndPriceFeedAddressesMustBeSameLength();
+    error DSCEngine__TokenAddressesAndPriceFeedAddressesMustBeSameLength();
     error DSCEngine__NotAllowedToken();
+    error DSCEngine__transferFailed();
 
     /////////////////////////
     //  state variables    //
     /////////////////////////
     mapping(address token => address priceFeed) private s_priceFeeds; //tokenToPriceFeed
-    mapping(address user => mapping(address token => uint256 amount))
-        private s_collateralDeposited;
+    mapping(address user => mapping(address token => uint256 amount)) private s_collateralDeposited;
 
     DecentralizedStableCoin private immutable i_dsc;
+
+    //////////////
+    //  events  //
+    //////////////
+    event CollateralDeposited(address indexed user, address indexed token, uint256 indexed amount);
 
     ////////////////
     //  modifiers //
@@ -80,14 +86,10 @@ contract DSCEnging is ReentrancyGuard {
     ////////////////
     //  functions //
     ////////////////
-    constructor(
-        address[] memory tokenAddresses,
-        address[] memory priceFeedAddresses,
-        address dscAddress
-    ) {
+    constructor(address[] memory tokenAddresses, address[] memory priceFeedAddresses, address dscAddress) {
         // USD Price Feeds
         if (tokenAddresses.length != priceFeedAddresses.length) {
-            revert DSCEnging__TokenAddressesAndPriceFeedAddressesMustBeSameLength();
+            revert DSCEngine__TokenAddressesAndPriceFeedAddressesMustBeSameLength();
         }
         // For example ETH /USD, BTC / USD, MKR / USD, etc
         for (uint256 i = 0; i < tokenAddresses.length; i++) {
@@ -103,21 +105,22 @@ contract DSCEnging is ReentrancyGuard {
     function depositCollateralAndMintDsc() external {}
 
     /*
+     * @notice follows CEI(checks affects interactions) pattern
      * @param tokenCollateralAddress  The address of the token to deposit as collateral
      * @param amountCollateral  The amount of collateral to deposit
      */
-    function depositCollateral(
-        address tokenCollateralAddress,
-        uint256 amountCollateral
-    )
+    function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral)
         external
         moreThanZero(amountCollateral)
         isAllowedToken(tokenCollateralAddress)
         nonReentrant
     {
-        s_collateralDeposited[msg.sender][
-            tokenCollateralAddress
-        ] += amountCollateral;
+        s_collateralDeposited[msg.sender][tokenCollateralAddress] += amountCollateral;
+        emit CollateralDeposited(msg.sender, tokenCollateralAddress, amountCollateral);
+        bool success = IERC20(tokenCollateralAddress).transferFrom(msg.sender, address(this), amountCollateral);
+        if (!success) {
+            revert DSCEngine__transferFailed();
+        }
     }
 
     function redeemCollateralForDsc() external {}
