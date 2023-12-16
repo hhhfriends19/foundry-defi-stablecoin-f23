@@ -58,6 +58,9 @@ contract DSCEnging is ReentrancyGuard {
     //  state variables    //
     /////////////////////////
     uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10;
+    uint256 private constant PRECISION = 1e18;
+    uint256 private constant LIQUIDATION_PRECISION = 100;
+    uint256 private constant LIQUIDATION_THRESHOLD = 50;
 
     mapping(address token => address priceFeed) private s_priceFeeds; //tokenToPriceFeed
     mapping(address user => mapping(address token => uint256 amount)) private s_collateralDeposited;
@@ -164,7 +167,7 @@ contract DSCEnging is ReentrancyGuard {
         returns (uint256 totalDscMinted, uint256 collateralValueInUsd)
     {
         totalDscMinted = s_DSCMinted[user];
-        collateralvalueInUsd = getAccountCollateralValue(user);
+        collateralValueInUsd = getAccountCollateralValue(user);
     }
     /**
      * Returns how close to liquidation a user is
@@ -176,11 +179,14 @@ contract DSCEnging is ReentrancyGuard {
         // total DSC minted
         // total collateral VALUE, make sure the value is greater than totaldscminted
         (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInformation(user);
+        uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
+        //return (collateralValueInUsd / totalDscMinted);
     }
 
     function _revertIfHealthFactorIsBroken(address user) internal view {
         // 1. Check health factor (do they have enough collateral?)
         // 2. Revert if they don't have good health factor
+        (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInformation(user);
     }
 
     ///////////////////////////////////////
