@@ -186,13 +186,15 @@ contract DSCEnging is ReentrancyGuard {
     ///////////////////////////////////////
     //  Public & External view functions //
     ///////////////////////////////////////
-    function getAccountCollateralValue(address user) public view returns (uint256) {
+    function getAccountCollateralValue(address user) public view returns (uint256 totalCollateralValueInUsd) {
         // loop through each collateral token, get the amount they have deposited, and
         // map it to the price, to get the usd value
         for (uint256 i = 0; i < s_collateralTokens.length; i++) {
             address token = s_collateralTokens[i];
             uint256 amount = s_collateralDeposited[user][token];
+            totalCollateralValueInUsd += getUsdValue(token, amount);
         }
+        return totalCollateralValueInUsd;
     }
 
     function getUsdValue(address token, uint256 amount) public view returns (uint256) {
