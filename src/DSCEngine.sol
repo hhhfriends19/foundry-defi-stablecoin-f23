@@ -53,6 +53,7 @@ contract DSCEnging is ReentrancyGuard {
     error DSCEngine__TokenAddressesAndPriceFeedAddressesMustBeSameLength();
     error DSCEngine__NotAllowedToken();
     error DSCEngine__transferFailed();
+    error DSCEngine__BreaksHealthFactor(uint256 userHealthFactor);
 
     /////////////////////////
     //  state variables    //
@@ -61,6 +62,7 @@ contract DSCEnging is ReentrancyGuard {
     uint256 private constant PRECISION = 1e18;
     uint256 private constant LIQUIDATION_PRECISION = 100;
     uint256 private constant LIQUIDATION_THRESHOLD = 50;
+    uint256 private constant MIN_HEALTH_FACTOR = 1;
 
     mapping(address token => address priceFeed) private s_priceFeeds; //tokenToPriceFeed
     mapping(address user => mapping(address token => uint256 amount)) private s_collateralDeposited;
@@ -148,7 +150,7 @@ contract DSCEnging is ReentrancyGuard {
         s_DSCMinted[msg.sender] += amountDscToMint;
         // if they minted too much (if user want to mint $150 DSC, but he only have $100 ETH),
         // We should revert this situation
-        revertIfHealthFactorIsBroken(msg.sender);
+        _revertIfHealthFactorIsBroken(msg.sender);
     }
 
     function burnDsc() external {}
@@ -184,10 +186,13 @@ contract DSCEnging is ReentrancyGuard {
         //return (collateralValueInUsd / totalDscMinted);
     }
 
+    // 1. Check health factor (do they have enough collateral?)
+    // 2. Revert if they don't have good health factor
     function _revertIfHealthFactorIsBroken(address user) internal view {
-        // 1. Check health factor (do they have enough collateral?)
-        // 2. Revert if they don't have good health factor
-        (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInformation(user);
+        uint256 userHealthFactor = _healthFactor(user);
+        if (userHealthFactor < MIN_HEALTH_FACTOR) {
+            revert DSCEngine__BreaksHealthFactor(userHealthFactor);
+        }
     }
 
     ///////////////////////////////////////
