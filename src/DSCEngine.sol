@@ -180,6 +180,7 @@ contract DSCEnging is ReentrancyGuard {
         // total collateral VALUE, make sure the value is greater than totaldscminted
         (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInformation(user);
         uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
+        return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
         //return (collateralValueInUsd / totalDscMinted);
     }
 
