@@ -55,7 +55,6 @@ contract DSCEnging is ReentrancyGuard {
     error DSCEngine__transferFailed();
     error DSCEngine__BreaksHealthFactor(uint256 userHealthFactor);
     error DSCEngine__MintFailed();
-    error DSCEngine__MintFailed();
 
     /////////////////////////
     //  state variables    //
