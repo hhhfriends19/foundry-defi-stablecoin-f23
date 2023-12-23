@@ -26,6 +26,6 @@ contract DeployDSC is Script {
 
         dsc.transferOwnership(address(engine));
         vm.stopBroadcast();
-        return (dsc, engine);
+        return (dsc, engine, config);
     }
 }
