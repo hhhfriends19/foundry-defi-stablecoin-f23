@@ -150,7 +150,19 @@ contract DSCEngine is ReentrancyGuard {
         }
     }
 
-    function redeemCollateralForDsc() external {}
+    /*
+    * @param tokenCollateralAddress The collateral address to redeem
+    * @param amountCollateral The amount of collateral to redeem
+    * @param amountDscToBurn The amount of DSC to burn 
+    * This function burns DSC and redeems underlying collateral in one transaction
+    */
+    function redeemCollateralForDsc(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountDscToBurn)
+        external
+    {
+        burnDsc(amountDscToBurn);
+        redeemCollateral(tokenCollateralAddress, amountCollateral);
+        // redeemCollateral already checks health factor
+    }
 
     /*
     * in order to redeem collateral:
@@ -159,7 +171,7 @@ contract DSCEngine is ReentrancyGuard {
     * CEI: Check, Effects, Interactions
     */
     function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral)
-        external
+        public
         moreThanZero(amountCollateral)
         nonReentrant
     {
