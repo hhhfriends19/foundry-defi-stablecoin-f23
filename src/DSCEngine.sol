@@ -214,7 +214,16 @@ contract DSCEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender); // I don't think this would ever hit...
     }
 
-    function liquidate() external {}
+    // If we do start nearing undercollateralization, we need someone to lliquidata positions
+
+    /*
+    * @param collateral The erc20 collateral address to liquidate from the user
+    * @paran user The user who has broken the health factor. Their _healthFactor should be below MIN_HEALTH_FACTOR
+    * @notice You can partically liquidate a user. 
+    * @notice You eill get a liquidation bonous for taking the users funds  
+    * @notice This function working assumes the protocol will be roughly 200% overcollateralized in order for this to work.
+    */
+    function liquidate(address collateral, address user, uint256 debtToCover) external {}
 
     function getHealthFactor() external view {}
 
