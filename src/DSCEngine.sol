@@ -265,9 +265,6 @@ contract DSCEngine is ReentrancyGuard {
     /*
      * @dev Low-level internal function, do not call unless the function calling it is
      * checking for health factors being broken
-     * @param amountDscToBurn 
-     * @param onBehalfOf 
-     * @param dscFrom 
      */
     function _burnDsc(uint256 amountDscToBurn, address onBehalfOf, address dscFrom) private {
         s_DSCMinted[onBehalfOf] -= amountDscToBurn;
