@@ -6,3 +6,8 @@
 3. Collateral: Exogenous (Cypto)
    1. wETH
    2. wBTC
+
+
+- calculate health factor function
+- set health factor if debt is 0
+- added a bunch of view function
