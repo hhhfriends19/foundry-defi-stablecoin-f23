@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.18;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, console} from "forge-std/Test.sol";
 import {DeployDSC} from "../../script/DeployDSC.s.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
@@ -99,7 +99,16 @@ contract DSCEngineTest is Test {
         uint256 expectedTotalDscMinted = 0;
         // 10 ether * 2000 = $20,000 (collateralValueInUsd)
         uint256 expectedDepositAmount = dsce.getTokenAmountFromUsd(weth, collateralValueInUsd);
-        assertEq(expectedTotalDscMinted, expectedTotalDscMinted);
+        assertEq(totalDscMinted, expectedTotalDscMinted);
         assertEq(AMOUNT_COLLATERAL, expectedDepositAmount);
     }
+
+    function testCanDepositCollateralWithoutMinting() public depositedCollateral {
+        uint256 userBalance = dsc.balanceOf(USER);
+        assertEq(userBalance, 0);
+    }
+
+    ////////////////////////////////////////
+    // depositCollateralAndMintDsc Tests  //
+    ////////////////////////////////////////
 }
