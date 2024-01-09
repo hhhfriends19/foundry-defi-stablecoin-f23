@@ -8,6 +8,7 @@ import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
+import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
 
 contract DSCEngineTest is Test {
     DeployDSC deployer;
@@ -21,6 +22,7 @@ contract DSCEngineTest is Test {
     address public USER = makeAddr("user");
     uint256 public constant AMOUNT_COLLATERAL = 10 ether;
     uint256 public constant STARTING_ERC20_BALANCE = 10 ether;
+    uint256 amountToMint;
 
     function setUp() public {
         deployer = new DeployDSC();
@@ -111,4 +113,12 @@ contract DSCEngineTest is Test {
     ////////////////////////////////////////
     // depositCollateralAndMintDsc Tests  //
     ////////////////////////////////////////
+    function testRevertsIfMintedDscBreaksHealthFactor() public {
+        (, int256 price,,,) = MockV3Aggregator(ethUsdPriceFeed).latestRoundData();
+        amountToMint = (AMOUNT_COLLATERAL * (uint256(price) * dsce.getAdditionalFeedPrecision())) / dsce.getPrecision();
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dsce), AMOUNT_COLLATERAL);
+
+        uint256 expectedHealthFactor = dsce.calculateHealthFactor;
+    }
 }
