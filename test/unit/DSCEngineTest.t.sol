@@ -200,7 +200,21 @@ contract DSCEngineTest is Test {
         assertEq(amountToMint, dsc.balanceOf(USER));
     }
 
-    ///////////////////////////////////
+    ///////////////////
     // burnDsc Tests //
-    ///////////////////////////////////
+    ///////////////////
+    function testRevertsIfBurnAmountIsZero() public {
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dsce), AMOUNT_COLLATERAL);
+        dsce.depositCollateralAndMintDsc(weth, AMOUNT_COLLATERAL, amountToMint);
+        vm.expectRevert(DSCEngine.DSCEngine__NeedsMoreThanZero.selector);
+        dsce.burnDsc(0);
+        vm.stopPrank();
+    }
+
+    function testCantBurnMoreThanUserHas() public {
+        vm.prank(USER);
+        vm.expectRevert();
+        dsce.burnDsc(1);
+    }
 }
