@@ -217,4 +217,14 @@ contract DSCEngineTest is Test {
         vm.expectRevert();
         dsce.burnDsc(1);
     }
+
+    function testCanBurnDsc() public depositedCollateralAndMintedDsc {
+        vm.startPrank(USER);
+        dsc.approve(address(dsce), amountToMint);
+        dsce.burnDsc(amountToMint);
+        vm.stopPrank();
+
+        uint256 userBalance = dsc.balanceOf(USER);
+        assertEq(userBalance, 0);
+    }
 }
