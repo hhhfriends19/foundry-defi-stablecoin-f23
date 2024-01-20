@@ -307,7 +307,7 @@ contract DSCEngine is ReentrancyGuard {
         // total collateral VALUE, make sure the value is greater than totaldscminted
         (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInformation(user);
         if (totalDscMinted <= 0) {
-            return 1e18;
+            return 1e18; // return type(uint256).max
         }
         uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
         return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;

@@ -10,6 +10,7 @@ import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
 import {MockFailedMintDSC} from "../mocks/MockFailedMintDSC.sol";
+import {MockFailedTransfer} from "../mocks/MockFailedTransfer.sol";
 
 contract DSCEngineTest is Test {
     DeployDSC deployer;
@@ -227,4 +228,8 @@ contract DSCEngineTest is Test {
         uint256 userBalance = dsc.balanceOf(USER);
         assertEq(userBalance, 0);
     }
+
+    ////////////////////////////
+    // redeemCollateral Tests //
+    ////////////////////////////
 }
