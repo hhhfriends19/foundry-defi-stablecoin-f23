@@ -13,6 +13,10 @@ import {MockFailedMintDSC} from "../mocks/MockFailedMintDSC.sol";
 import {MockFailedTransfer} from "../mocks/MockFailedTransfer.sol";
 
 contract DSCEngineTest is Test {
+    event CollateralRedeemed(
+        address indexed redeemFrom, address indexed redeemTo, address indexed token, uint256 amount
+    ); // if redeemFrom != redeemedTo, then it was liquidated
+
     DeployDSC deployer;
     DecentralizedStableCoin dsc;
     DSCEngine dsce;
@@ -277,7 +281,18 @@ contract DSCEngineTest is Test {
         dsce.redeemCollateral(weth, AMOUNT_COLLATERAL);
         uint256 userBalance = ERC20Mock(weth).balanceOf(USER);
         assertEq(userBalance, AMOUNT_COLLATERAL);
-        console.log(AMOUNT_COLLATERAL);
         vm.stopPrank();
     }
+
+    function testEmitCollateralRedeemedWithCorrectArgs() public depositedCollateral {
+        vm.expectEmit(true, true, true, true, address(dsce));
+        emit CollateralRedeemed(USER, USER, weth, AMOUNT_COLLATERAL);
+        vm.startPrank(USER);
+        dsce.redeemCollateral(weth, AMOUNT_COLLATERAL);
+        vm.stopPrank();
+    }
+
+    ///////////////////////////////////
+    // redeemCollateralForDsc Tests //
+    //////////////////////////////////
 }
