@@ -337,4 +337,20 @@ contract DSCEngineTest is Test {
         // 10,000 / 100 = 100 health factor
         assertEq(healthFactor, expectedHealthFactor);
     }
+
+    function testHealthFactorCanGoBelowOne() public depositedCollateralAndMintedDsc {
+        int256 ethUsdUpdatedPrice = 18e8; // 1 eth = $18
+        // Remember, we need $200 at all times if we have $100 of debt
+
+        MockV3Aggregator(ethUsdPriceFeed).updateAnswer(ethUsdUpdatedPrice);
+        uint256 userHealthFactor = dsce.getHealthFactor(USER);
+        // 180*50(LIQUIDATION_THRESHOLD) / 100(LIQUIDATION_PRECISION) / 100 (PRECISION) = 90 / 100 (totalDscMinted) = 0.9
+        assert(userHealthFactor == 0.9 ether);
+    }
+
+    ///////////////////////
+    // Liquidation Tests //
+    ///////////////////////
+    // This needs its own setup
+    function testMustImproveHealthFactorOnLiquidation() public {}
 }
