@@ -236,6 +236,7 @@ contract DSCEngine is ReentrancyGuard {
         // Bad User: $140 ETH, $100 DSC
         // debtToCover = $100
         // $100 of DSC == ??? ETH?
+        // If covering 100 DSC, we need to $100 of collateral
         uint256 tokenAmountFromDebtCovered = getTokenAmountFromUsd(collateral, debtToCover);
         // And give them a 10% bonus
         // So we are giving the liquidator $110 of WETH for 100 DSC
@@ -244,8 +245,10 @@ contract DSCEngine is ReentrancyGuard {
 
         // 0.05 ETH * 0.1 = 0.005 ETH. Getting 0.055 ETH
         uint256 bonusCollateral = (tokenAmountFromDebtCovered * LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
-        uint256 totalCollateralToRedeem = tokenAmountFromDebtCovered + bonusCollateral;
-        _redeemCollateral(collateral, totalCollateralToRedeem, user, msg.sender);
+        //uint256 totalCollateralToRedeem = tokenAmountFromDebtCovered + bonusCollateral;
+        // Burn DSC equal to debtToCover
+        // Figure out how much collateral to recover based on how much burnt
+        _redeemCollateral(collateral, tokenAmountFromDebtCovered + bonusCollateral, user, msg.sender);
         // We need to burn the DSC
         _burnDsc(debtToCover, user, msg.sender);
 
