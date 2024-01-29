@@ -403,19 +403,6 @@ contract DSCEngineTest is Test {
         vm.stopPrank();
     }
 
-    function testCanLiquidateGoodHealthFactor2() public {
-        ERC20Mock(weth).mint(liquidator, collateralToCover);
-
-        vm.startPrank(liquidator);
-        ERC20Mock(weth).approve(address(dsce), collateralToCover);
-        dsce.depositCollateralAndMintDsc(weth, collateralToCover, amountToMint);
-        dsc.approve(address(dsce), amountToMint);
-
-        vm.expectRevert(DSCEngine.DSCEngine__HealthFactorOk.selector);
-        dsce.liquidate(weth, USER, amountToMint);
-        vm.stopPrank();
-    }
-
     modifier liquidated() {
         vm.startPrank(USER);
         ERC20Mock(weth).approve(address(dsce), AMOUNT_COLLATERAL);
@@ -427,10 +414,22 @@ contract DSCEngineTest is Test {
         uint256 userHealthFactor = dsce.getHealthFactor(USER);
 
         ERC20Mock(weth).mint(liquidator, collateralToCover);
+
+        vm.startPrank(liquidator);
+        ERC20Mock(weth).approve(address(dsce), collateralToCover);
         dsce.depositCollateralAndMintDsc(weth, collateralToCover, amountToMint);
         dsc.approve(address(dsce), amountToMint);
         dsce.liquidate(weth, USER, amountToMint); // We are covering their whold debt
         vm.stopPrank();
         _;
+    }
+
+    function testLiquidationPayoutIsCorrect() public liquidated {
+        uint256 liquidatorWethBalance = ERC20Mock(weth).balanceOf(liquidator);
+        uint256 expectedWeth = dsce.getTokenAmountFromUsd(weth, amountToMint)
+            + (dsce.getTokenAmountFromUsd(weth, amountToMint) / dsce.getLiquidationBonus());
+        uint256 hardCodeExpected = 6111111111111111110;
+        assertEq(liquidatorWethBalance, hardCodeExpected);
+        assertEq(liquidatorWethBalance, expectedWeth);
     }
 }
