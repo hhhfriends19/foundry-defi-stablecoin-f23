@@ -407,4 +407,8 @@ contract DSCEngine is ReentrancyGuard {
     function getMinHealthFactor() external pure returns (uint256) {
         return MIN_HEALTH_FACTOR;
     }
+
+    function getLiquidationThreshold() external pure returns (uint256) {
+        return LIQUIDATION_THRESHOLD;
+    }
 }

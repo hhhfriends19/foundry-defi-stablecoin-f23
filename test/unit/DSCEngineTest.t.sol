@@ -30,6 +30,7 @@ contract DSCEngineTest is Test {
     uint256 public constant AMOUNT_COLLATERAL = 10 ether;
     uint256 public constant STARTING_ERC20_BALANCE = 10 ether;
     uint256 private constant MIN_HEALTH_FACTOR = 1e18;
+    uint256 private constant LIQUIDATION_THRESHOLD = 50;
     uint256 amountToMint = 100 ether;
 
     // Liquidation
@@ -474,5 +475,16 @@ contract DSCEngineTest is Test {
     function testGetMinHealthFactor() public {
         uint256 minHealthFactor = dsce.getMinHealthFactor();
         assertEq(minHealthFactor, MIN_HEALTH_FACTOR);
+    }
+
+    function testGetLiquidationThreshold() public {
+        uint256 liquidationThreshold = dsce.getLiquidationThreshold();
+        assertEq(liquidationThreshold, LIQUIDATION_THRESHOLD);
+    }
+
+    function testGetAccountCollateralValueFromInformation() public depositedCollateral {
+        (, uint256 collateralValue) = dsce.getAccountInfomation(USER);
+        uint256 expectedCollateralValue = dsce.getUsdValue(weth, AMOUNT_COLLATERAL);
+        assertEq(collateralValue, expectedCollateralValue);
     }
 }
