@@ -29,6 +29,7 @@ contract DSCEngineTest is Test {
     address public USER = makeAddr("user");
     uint256 public constant AMOUNT_COLLATERAL = 10 ether;
     uint256 public constant STARTING_ERC20_BALANCE = 10 ether;
+    uint256 private constant MIN_HEALTH_FACTOR = 1e18;
     uint256 amountToMint = 100 ether;
 
     // Liquidation
@@ -455,5 +456,23 @@ contract DSCEngineTest is Test {
     function testUserHasNoMoreDebt() public liquidated {
         (uint256 userDscMinted,) = dsce.getAccountInfomation(USER);
         assertEq(userDscMinted, 0);
+    }
+
+    ///////////////////////////////////
+    // View & Pure Function Tests //
+    //////////////////////////////////
+    function testGetCollateralTokenPriceFeed() public {
+        address priceFeed = dsce.getCollateralTokenPriceFeed(weth);
+        assertEq(priceFeed, ethUsdPriceFeed);
+    }
+
+    function testGetCollateralTokens() public {
+        address[] memory collateralTokens = dsce.getCollateralTokens();
+        assertEq(collateralTokens[0], weth);
+    }
+
+    function testGetMinHealthFactor() public {
+        uint256 minHealthFactor = dsce.getMinHealthFactor();
+        assertEq(minHealthFactor, MIN_HEALTH_FACTOR);
     }
 }

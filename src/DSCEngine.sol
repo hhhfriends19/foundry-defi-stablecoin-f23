@@ -395,4 +395,16 @@ contract DSCEngine is ReentrancyGuard {
     function getLiquidationBonus() external pure returns (uint256) {
         return LIQUIDATION_BONUS;
     }
+
+    function getCollateralTokenPriceFeed(address token) external view returns (address) {
+        return s_priceFeeds[token];
+    }
+
+    function getCollateralTokens() external view returns (address[] memory) {
+        return s_collateralTokens;
+    }
+
+    function getMinHealthFactor() external pure returns (uint256) {
+        return MIN_HEALTH_FACTOR;
+    }
 }
