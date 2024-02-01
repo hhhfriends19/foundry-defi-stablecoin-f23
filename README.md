@@ -11,3 +11,5 @@
 - calculate health factor function
 - set health factor if debt is 0
 - added a bunch of view function
+
+1. What are our invariant/properties
