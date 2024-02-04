@@ -163,9 +163,12 @@ contract DSCEngine is ReentrancyGuard {
     */
     function redeemCollateralForDsc(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountDscToBurn)
         external
+        moreThanZero(amountCollateral)
+        isAllowedToken(tokenCollateralAddress)
     {
-        burnDsc(amountDscToBurn);
-        redeemCollateral(tokenCollateralAddress, amountCollateral);
+        _burnDsc(amountDscToBurn, msg.sender, msg.sender);
+        _redeemCollateral(tokenCollateralAddress, amountCollateral, msg.sender, msg.sender);
+        revertIfHealthFactorIsBroken(msg.sender);
         // redeemCollateral already checks health factor
     }
 
@@ -179,9 +182,10 @@ contract DSCEngine is ReentrancyGuard {
         public
         moreThanZero(amountCollateral)
         nonReentrant
+        isAllowedToken(tokenCollateralAddress)
     {
         _redeemCollateral(tokenCollateralAddress, amountCollateral, msg.sender, msg.sender);
-        _revertIfHealthFactorIsBroken(msg.sender);
+        revertIfHealthFactorIsBroken(msg.sender);
     }
     // check if the collateral value > DSC amount. This involve a number of things: Pricefeeds, value, etc
     // maybe user deposit $200 ETH , but they only want to mint $20 DSC, they can pick how much they want to mint here
@@ -195,7 +199,7 @@ contract DSCEngine is ReentrancyGuard {
         s_DSCMinted[msg.sender] += amountDscToMint;
         // if they minted too much (if user want to mint $150 DSC, but he only have $100 ETH),
         // We should revert this situation
-        _revertIfHealthFactorIsBroken(msg.sender);
+        revertIfHealthFactorIsBroken(msg.sender);
         bool minted = i_dsc.mint(msg.sender, amountDscToMint);
         if (!minted) {
             revert DSCEngine__MintFailed();
@@ -203,9 +207,9 @@ contract DSCEngine is ReentrancyGuard {
     }
 
     // Do we need to check if this breaks health factor?
-    function burnDsc(uint256 amount) public moreThanZero(amount) {
+    function burnDsc(uint256 amount) external moreThanZero(amount) {
         _burnDsc(amount, msg.sender, msg.sender);
-        _revertIfHealthFactorIsBroken(msg.sender); // I don't think this would ever hit...
+        revertIfHealthFactorIsBroken(msg.sender); // I don't think this would ever hit...
     }
 
     // If we do start nearing undercollateralization, we need someone to lliquidata positions
@@ -256,7 +260,7 @@ contract DSCEngine is ReentrancyGuard {
         if (endingUserHealthFactor <= startingUserHealthFactor) {
             revert DSCEngine__HealthFactorNotImproved();
         }
-        _revertIfHealthFactorIsBroken(msg.sender);
+        revertIfHealthFactorIsBroken(msg.sender);
     }
 
     function getHealthFactor(address user) external view returns (uint256) {
@@ -290,7 +294,7 @@ contract DSCEngine is ReentrancyGuard {
         if (!success) {
             revert DSCEngine__TransferFailed();
         }
-        _revertIfHealthFactorIsBroken(msg.sender);
+        //revertIfHealthFactorIsBroken(msg.sender);
     }
 
     function _getAccountInformation(address user)
@@ -331,7 +335,7 @@ contract DSCEngine is ReentrancyGuard {
 
     // 1. Check health factor (do they have enough collateral?)
     // 2. Revert if they don't have good health factor
-    function _revertIfHealthFactorIsBroken(address user) internal view {
+    function revertIfHealthFactorIsBroken(address user) internal view {
         uint256 userHealthFactor = _healthFactor(user);
         if (userHealthFactor < MIN_HEALTH_FACTOR) {
             revert DSCEngine__BreaksHealthFactor(userHealthFactor);
@@ -363,12 +367,16 @@ contract DSCEngine is ReentrancyGuard {
         for (uint256 i = 0; i < s_collateralTokens.length; i++) {
             address token = s_collateralTokens[i];
             uint256 amount = s_collateralDeposited[user][token];
-            totalCollateralValueInUsd += getUsdValue(token, amount);
+            totalCollateralValueInUsd += _getUsdValue(token, amount);
         }
         return totalCollateralValueInUsd;
     }
 
-    function getUsdValue(address token, uint256 amount) public view returns (uint256) {
+    function getUsdValue(address token, uint256 amount) external view returns (uint256) {
+        return _getUsdValue(token, amount);
+    }
+
+    function _getUsdValue(address token, uint256 amount) private view returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
         (, int256 price,,,) = priceFeed.latestRoundData();
         // 1ETH = $1000

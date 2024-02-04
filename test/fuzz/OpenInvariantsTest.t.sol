@@ -9,7 +9,7 @@
 
 pragma solidity ^0.8.18;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, console} from "forge-std/Test.sol";
 import {StdInvariant} from "forge-std/StdInvariant.sol";
 import {DeployDSC} from "../../script/DeployDSC.s.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
@@ -35,5 +35,13 @@ contract OpenInvariantsTest is StdInvariant, Test {
     function invariant_protocolMustHaveMoreValueThanTotalSupply() public view {
         // get the value of all the collateral in the protocol <- use HelperConfig to get it(weth,wbtc)
         // compare it to all the debt (dsc)
+        uint256 totalSupply = dsc.totalSupply();
+        uint256 totalWethDeposited = IERC20(weth).balanceOf(address(dsce));
+        uint256 totalBtcDeposited = IERC20(wbtc).balanceOf(address(dsce));
+
+        uint256 wethValue = dsce.getUsdValue(weth, totalWethDeposited);
+        uint256 wbtcValue = dsce.getUsdValue(wbtc, totalBtcDeposited);
+
+        assert(wethValue + wbtcValue >= totalSupply);
     }
 }
