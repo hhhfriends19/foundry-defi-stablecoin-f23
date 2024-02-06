@@ -9,5 +9,17 @@ import {DSCEngine} from "../../src/DSCEngine.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 
 contract Handler is Test {
-    constructor() {}
+    DSCEngine dsce;
+    DecentralizedStableCoin dsc;
+
+    constructor(DSCEngine _dscEngine, DecentralizedStableCoin _dsc) {
+        dsce = _dscEngine;
+        dsc = _dsc;
+    }
+
+    // redeem collateral <-
+
+    function depositCollateral(address collateral, uint256 amountCollateral) public {
+        dsce.depositCollateral(collateral, amountCollateral);
+    }
 }
